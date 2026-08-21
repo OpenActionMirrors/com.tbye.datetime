@@ -12,7 +12,7 @@ Plugin for the Elgato StreamDeck Family of Devices.  Display date, time, and seg
 
 ### Releases
 
-Version **1.1.0.1** is the Marketplace package (manifest `1.1.0.1`). GitHub sideload: [1.1.0](https://github.com/tbye/tbye-sdp-datetime/releases/download/1.1.0/com.tbye.datetime.streamDeckPlugin). Previous: [1.0.2](https://github.com/tbye/tbye-sdp-datetime/releases/download/1.0.2/com.tbye.datetime.streamDeckPlugin).
+Version **1.1.0.1** now available: [Download](https://github.com/tbye/tbye-sdp-datetime/releases/download/1.1.0.1/com.tbye.datetime.streamDeckPlugin). Previous: [1.1.0](https://github.com/tbye/tbye-sdp-datetime/releases/download/1.1.0/com.tbye.datetime.streamDeckPlugin), [1.0.2](https://github.com/tbye/tbye-sdp-datetime/releases/download/1.0.2/com.tbye.datetime.streamDeckPlugin).
 
 On [Elgato Marketplace](https://marketplace.elgato.com/product/datetime-segments-b89cfa09-bff1-4aa4-b782-6db7672b536a) as **DateTime Segments**. 1.1.0.1 requires Stream Deck **6.9+**.
 
