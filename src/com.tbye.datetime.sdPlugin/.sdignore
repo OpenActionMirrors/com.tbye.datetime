@@ -3,7 +3,10 @@ test.js
 **/*.sketch
 **/.DS_Store
 
-# SDK submodule metadata (js/css/assets are kept)
+# Unused HTML SDK submodule (PI now uses sdpi-components)
+libs/
+
+# SDK submodule metadata if libs/ is ever populated
 libs/.git
 libs/.gitignore
 libs/.editorconfig

@@ -10,8 +10,8 @@
 #
 # Prerequisites:
 #   - Node.js 20+ (24+ recommended)
+#   - npm install (once, for @elgato/streamdeck + rollup)
 #   - npm install -g @elgato/cli@latest
-#   - git submodule initialized (script will try to init)
 
 set -euo pipefail
 
@@ -50,14 +50,14 @@ done
 
 # --- prerequisites ---------------------------------------------------------
 
-if ! command -v streamdeck >/dev/null 2>&1; then
-	echo "error: 'streamdeck' CLI not found." >&2
-	echo "Install with:  npm install -g @elgato/cli@latest" >&2
+if ! command -v node >/dev/null 2>&1; then
+	echo "error: node is required" >&2
 	exit 1
 fi
 
-if ! command -v node >/dev/null 2>&1; then
-	echo "error: node is required" >&2
+if ! command -v streamdeck >/dev/null 2>&1; then
+	echo "error: 'streamdeck' CLI not found." >&2
+	echo "Install with:  npm install -g @elgato/cli@latest" >&2
 	exit 1
 fi
 
@@ -66,15 +66,18 @@ if [[ ! -f "$MANIFEST" ]]; then
 	exit 1
 fi
 
-# SDK submodule (libs/) must be present for packaging
-if [[ ! -f "$PLUGIN_DIR/libs/js/stream-deck.js" ]]; then
-	echo "→ Initializing git submodule (streamdeck-javascript-sdk)..."
-	git -C "$ROOT" submodule update --init --recursive
+# --- install / bundle ------------------------------------------------------
+
+if [[ ! -d "$ROOT/node_modules/@elgato/streamdeck" ]]; then
+	echo "→ npm install..."
+	(cd "$ROOT" && npm install)
 fi
 
-if [[ ! -f "$PLUGIN_DIR/libs/js/stream-deck.js" ]]; then
-	echo "error: libs/ still missing after submodule init." >&2
-	echo "Run: git submodule update --init --recursive" >&2
+echo "→ Bundling plugin (rollup)..."
+(cd "$ROOT" && npm run build)
+
+if [[ ! -f "$PLUGIN_DIR/bin/plugin.js" ]]; then
+	echo "error: bundle missing at $PLUGIN_DIR/bin/plugin.js" >&2
 	exit 1
 fi
 
@@ -140,7 +143,6 @@ if [[ ! -f "$OUT" ]]; then
 	exit 1
 fi
 
-# Report final version from packed manifest (if we can peek)
 SIZE=$(wc -c <"$OUT" | tr -d ' ')
 echo ""
 echo "✔ Package ready"
@@ -156,6 +158,7 @@ else
 fi
 echo ""
 echo "Next steps:"
-echo "  1. Smoke-test: copy to a Mac/Windows machine with Stream Deck and double-click the package"
-echo "  2. GitHub release:  gh release create vX.Y.Z \"$OUT\" --title \"DateTime Composer Plugin - X.Y.Z\" --notes-file -"
+echo "  1. Smoke-test: copy to a Mac/Windows machine with Stream Deck 6.9+ and double-click the package"
+echo "  2. GitHub release:  gh release create vX.Y.Z \"$OUT\" --title \"DateTime Segments Plugin - X.Y.Z\" --notes-file -"
 echo "  3. Marketplace:     https://maker.elgato.com  → upload the same .streamDeckPlugin"
+echo "     Product name must stay 'DateTime Segments'. DRM is enabled via SDKVersion 3 + MinimumVersion 6.9."

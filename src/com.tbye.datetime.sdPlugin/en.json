@@ -1,10 +1,10 @@
 {
-  "Description": "Display dates, times and segments of dates and times.", 
-  "Name": "DateTime Segments", 
-  "Category": "DateTime Composer", 
+  "Description": "Display dates, times and segments of dates and times.",
+  "Name": "DateTime Segments",
+  "Category": "DateTime Segments",
   "com.tbye.datetime.action": {
-    "Name": "DateTime Segments", 
-    "Tooltip": "Display dates, times and segments of dates and times."
+    "Name": "DateTime Segments",
+    "Tooltip": "Display dates, times, and date/time segments. Press to copy the current value."
   },
   "Localization": {}
 }

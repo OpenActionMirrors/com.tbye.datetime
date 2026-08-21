@@ -1,4 +1,4 @@
-const {
+import {
 	getOrdinalNumber,
 	getISOWeekNumber,
 	formatDateTime,
@@ -12,7 +12,7 @@ const {
 	msUntilNextSecond,
 	msUntilNextMinute,
 	msUntilNextLocalHour
-} = require('./app');
+} from '../datetime.js';
 
 function assertEqual(label, actual, expected) {
 	if (actual !== expected) {
@@ -398,8 +398,7 @@ const k = testLanguage();
 
 if (a && b && c && d && e && f && g && h && i && j && k) {
 	console.log('\nAll tests passed!');
-	process.exit(0);
 } else {
 	console.log('\nSome tests failed.');
-	process.exit(1);
+	process.exitCode = 1;
 }

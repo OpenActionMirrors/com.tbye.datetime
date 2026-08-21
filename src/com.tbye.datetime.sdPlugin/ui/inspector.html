@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+	<title>DateTime Segments</title>
+	<meta charset="utf-8" />
+	<script src="sdpi-components.js"></script>
+</head>
+<body>
+	<sdpi-item label="Segment(s)">
+		<sdpi-select setting="dtsegment" default="full">
+			<optgroup label="Compound Options">
+				<option value="full">Date and Time</option>
+				<option value="date">Date</option>
+				<option value="date_no_year">Date (No Year)</option>
+				<option value="time">Time</option>
+				<option value="time_no_seconds">Time (No Seconds)</option>
+				<option value="time_no_seconds_ampm">Time (No Seconds, No AM / PM)</option>
+			</optgroup>
+			<optgroup label="Date Options">
+				<option value="day">Day</option>
+				<option value="day_ordinal">Date (Ordinal, e.g. 2nd, 3rd)</option>
+				<option value="day_name">Day Name (e.g. Monday)</option>
+				<option value="day_abbrev">Day Abbreviation (e.g. Mon)</option>
+				<option value="month">Month</option>
+				<option value="month_name">Month Name</option>
+				<option value="month_abbrev">Month Abbreviation</option>
+				<option value="year">Year</option>
+				<option value="week_iso">Week Number (ISO 8601)</option>
+			</optgroup>
+			<optgroup label="Time Options">
+				<option value="hours_12">Hour (12)</option>
+				<option value="hours_24">Hour (24)</option>
+				<option value="minute">Minutes</option>
+				<option value="second">Seconds</option>
+				<option value="ampm">AM / PM</option>
+			</optgroup>
+		</sdpi-select>
+	</sdpi-item>
+	<sdpi-item label="Date Format">
+		<sdpi-select setting="dateformat" default="locale">
+			<option value="locale">System Default</option>
+			<option value="mm_dd_yyyy">MM/DD/YYYY</option>
+			<option value="dd_mm_yyyy">DD/MM/YYYY</option>
+			<option value="yyyy_mm_dd">YYYY-MM-DD</option>
+			<option value="d_m_yyyy_dot">D.M.YYYY (e.g. 27.3.2026)</option>
+			<option value="dd_mm_yyyy_dot">DD.MM.YYYY (e.g. 27.03.2026)</option>
+		</sdpi-select>
+	</sdpi-item>
+	<sdpi-item label="Hour Format">
+		<sdpi-select setting="hourformat" default="locale">
+			<option value="locale">System Default</option>
+			<option value="12">12-Hour</option>
+			<option value="24">24-Hour</option>
+		</sdpi-select>
+	</sdpi-item>
+	<sdpi-item label="Language">
+		<sdpi-select setting="language" default="locale">
+			<option value="locale">System Default</option>
+			<option value="en">English</option>
+			<option value="tr">Türkçe (Turkish)</option>
+			<option value="de">Deutsch (German)</option>
+			<option value="pl">Polski (Polish)</option>
+			<option value="fr">Français (French)</option>
+			<option value="es">Español (Spanish)</option>
+			<option value="pt">Português (Portuguese)</option>
+			<option value="it">Italiano (Italian)</option>
+			<option value="nl">Nederlands (Dutch)</option>
+			<option value="ja">日本語 (Japanese)</option>
+			<option value="zh-CN">中文 (Chinese Simplified)</option>
+			<option value="ko">한국어 (Korean)</option>
+		</sdpi-select>
+	</sdpi-item>
+</body>
+</html>

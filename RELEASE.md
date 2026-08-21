@@ -1,8 +1,10 @@
-# Building & releasing DateTime Composer
+# Building & releasing DateTime Segments
 
 This guide covers packaging a `.streamDeckPlugin` on **Linux** (or any machine with Node), publishing a **GitHub release**, and submitting to **Elgato Marketplace**.
 
-Last GitHub release on this repo was **1.0.2** (early 2024). Current `manifest.json` is **1.0.2.1**. After the recent feature work you’ll likely want **1.1.0** (or **1.0.3** if you prefer a patch-only bump).
+The Marketplace product is **[DateTime Segments](https://marketplace.elgato.com/product/datetime-segments-b89cfa09-bff1-4aa4-b782-6db7672b536a)**. Keep `manifest.json` `Name` / `Category` as **DateTime Segments** — Maker Console rejects a version whose name does not match the existing product.
+
+Current `manifest.json` is **1.1.0.0**. The plugin is a **Node.js SDK 3** plugin (`CodePath: bin/plugin.js`) so Marketplace can DRM-protect the upload.
 
 ---
 
@@ -11,7 +13,8 @@ Last GitHub release on this repo was **1.0.2** (early 2024). Current `manifest.j
 | Then (≈2024) | Now |
 |--------------|-----|
 | Elgato **DistributionTool** (Windows/Mac only), lived under `src/DistributionTool` (gitignored) | Official **Stream Deck CLI**: `npm i -g @elgato/cli` → `streamdeck pack` (**works on Linux**) |
-| Manual zip / tool quirks | `./scripts/build-release.sh` validates, tests, and packs into `dist/` |
+| HTML plugin (`app.html`, `SDKVersion` 2, Stream Deck 6.4) | Node plugin (`bin/plugin.js`, `SDKVersion` 3, Stream Deck **6.9+**) — required for Marketplace DRM |
+| Manual zip / tool quirks | `./scripts/build-release.sh` installs, bundles, tests, validates, and packs into `dist/` |
 | Marketplace via Maker Console | Still [Maker Console](https://maker.elgato.com) — upload the same package |
 
 The `.streamDeckPlugin` file is a **zip** whose top-level folder is `com.tbye.datetime.sdPlugin/`.
@@ -35,17 +38,15 @@ npm install -g @elgato/cli@latest
 streamdeck -v          # e.g. 1.7.x
 ```
 
-### 3. Submodule (Elgato JS SDK)
+### 3. Plugin dependencies
 
-The plugin loads `libs/` from the [streamdeck-javascript-sdk](https://github.com/elgatosf/streamdeck-javascript-sdk) submodule:
+From the repo root (once):
 
 ```bash
-git submodule update --init --recursive
-# must exist:
-ls src/com.tbye.datetime.sdPlugin/libs/js/stream-deck.js
+npm install
 ```
 
-The build script will try to init this for you if missing.
+This installs `@elgato/streamdeck` and Rollup. `./scripts/build-release.sh` will `npm install` if `node_modules` is missing, then bundle `src/plugin.ts` → `src/com.tbye.datetime.sdPlugin/bin/plugin.js`.
 
 ### 4. Optional: `gh` for GitHub releases
 
@@ -72,9 +73,9 @@ From the repo root:
 
 What the script does:
 
-1. Ensures `libs/` submodule is present  
-2. Runs `node test.js`  
-3. Runs `streamdeck validate`  
+1. `npm install` if needed, then `npm run build` (Rollup → `bin/plugin.js`)
+2. Runs `node test.js`
+3. Runs `streamdeck validate`
 4. Runs `streamdeck pack` → **`dist/com.tbye.datetime.streamDeckPlugin`**
 
 Ignore list for the package lives in:
@@ -124,7 +125,7 @@ VERSION=1.1.0
 
 gh release create "$VERSION" \
   dist/com.tbye.datetime.streamDeckPlugin \
-  --title "DateTime Composer Plugin - $VERSION" \
+  --title "DateTime Segments Plugin - $VERSION" \
   --notes "$(cat <<'EOF'
 ### Changes
 - …
@@ -139,7 +140,7 @@ Update README “Releases” section to point at the new asset URL.
 ## Elgato Marketplace / Maker Console
 
 1. Log in to **[Maker Console](https://maker.elgato.com)** (same Maker account as last time).  
-2. Open the existing **DateTime Composer** product (or create one if needed).  
+2. Open the existing **DateTime Segments** product (or create one if needed).  
 3. Upload **`com.tbye.datetime.streamDeckPlugin`** as a new version.  
 4. Fill version notes, gallery/screenshots if anything user-facing changed.  
 5. Submit for review (or upload without auto-publish for a private DRM test build).  
@@ -162,9 +163,18 @@ Official docs:
 - [Plugin guidelines](https://docs.elgato.com/guidelines/stream-deck/plugins)  
 - [Become a Maker](https://docs.elgato.com/marketplace/become-a-maker)
 
-### DRM note
+### DRM / Maker Console checklist
 
-Marketplace packages may be **DRM-processed** after upload. Your HTML/JS plugin does not use the modern Node `@elgato/streamdeck` v2 runtime, so **do not** flip `SDKVersion` to 3 / DRM-only settings unless you intentionally migrate the whole plugin. Keep packaging as you do today (`SDKVersion: 2`) unless Elgato’s review asks otherwise.
+Marketplace now requires DRM for new versions. The plugin is set up for that:
+
+- `Name` / `Category`: **DateTime Segments** (must match the live product)
+- `SDKVersion`: **3**
+- `Software.MinimumVersion`: **6.9**
+- `CodePath`: `bin/plugin.js` with `"Nodejs": { "Version": "20" }`
+
+Maker Console infers **DRM protection: Yes** from those fields. After upload, Elgato wraps the package; download the DRM build from the Versions tab if you need to smoke-test the protected copy.
+
+A 288×288 Marketplace app icon (listing only, not the plugin `Icon`) lives at `marketplace/app-icon-288.png`.
 
 ---
 
@@ -172,8 +182,8 @@ Marketplace packages may be **DRM-processed** after upload. Your HTML/JS plugin 
 
 ```bash
 # Install tooling once
+npm install
 npm install -g @elgato/cli@latest
-git submodule update --init --recursive
 
 # Everyday release cut
 ./scripts/set-version.sh 1.1.0
@@ -182,8 +192,9 @@ git add -u && git commit -m "chore: bump version to 1.1.0.0"
 # → dist/com.tbye.datetime.streamDeckPlugin
 
 # Ship
-gh release create 1.1.0 dist/com.tbye.datetime.streamDeckPlugin --title "DateTime Composer Plugin - 1.1.0" --notes "…"
+gh release create 1.1.0 dist/com.tbye.datetime.streamDeckPlugin --title "DateTime Segments Plugin - 1.1.0" --notes "…"
 # then upload the same file at https://maker.elgato.com
+# (product name DateTime Segments; leave auto-publish off until the DRM build is smoke-tested)
 ```
 
 ---
@@ -193,7 +204,7 @@ gh release create 1.1.0 dist/com.tbye.datetime.streamDeckPlugin --title "DateTim
 | Problem | Fix |
 |---------|-----|
 | `streamdeck: command not found` | `npm install -g @elgato/cli@latest` and ensure npm global bin is on `PATH` |
-| Validation fails on missing libs | `git submodule update --init --recursive` |
+| Validation fails on missing `bin/plugin.js` | `npm install && npm run build` |
 | Package missing PI styles | Confirm `libs/css/sdpi.css` is in the pack listing |
 | Old plugin still running | Uninstall old version in Stream Deck, or `streamdeck stop com.tbye.datetime` / remove plugin folder |
 | Want to inspect the package | `unzip -l dist/com.tbye.datetime.streamDeckPlugin` |

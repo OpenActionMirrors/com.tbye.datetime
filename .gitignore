@@ -2,11 +2,16 @@
 .idea/**
 /src/DistributionTool
 .vscode/**
-package.json
-package-lock.json
 .history
 __exclude
 .editorconfig
+
+# Node
+node_modules/
+
+# Stream Deck build output
+**/*.sdPlugin/bin/
+**/*.sdPlugin/logs/
 
 # Release artifacts (build with ./scripts/build-release.sh)
 /dist/

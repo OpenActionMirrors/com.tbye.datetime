@@ -1,8 +1,7 @@
-/// <reference path="libs/js/action.js" />
-/// <reference path="libs/js/stream-deck.js" />
-
-// Check if we're running in Node.js environment (for testing)
-const isNodeJS = typeof module !== 'undefined' && typeof module.exports !== 'undefined';
+/**
+ * Date/time formatting helpers shared by the Stream Deck plugin and tests.
+ * Settings may be a legacy segment string or a { dtsegment, dateformat, hourformat, language } object.
+ */
 
 const DEFAULT_SETTINGS = {
 	dtsegment: "full",
@@ -12,49 +11,6 @@ const DEFAULT_SETTINGS = {
 	language: "locale"
 };
 
-// Active button instances: context -> normalized settings object
-const activeContexts = {};
-let sharedTickTimeoutId = null;
-
-// Only initialize Stream Deck plugin if not in Node.js environment
-let myAction;
-if (!isNodeJS && typeof Action !== 'undefined') {
-	console.log('Initializing DateTime plugin...');
-	myAction = new Action('com.tbye.datetime.action');
-
-	myAction.onWillAppear(({ action, context, device, event, payload }) => {
-		const settings = normalizeSettings(payload.settings);
-		// Persist defaults when a brand-new tile has no settings yet
-		if (!payload.settings || !payload.settings.dtsegment) {
-			$SD.setSettings(context, settings);
-		}
-		registerContext(context, settings);
-	});
-
-	myAction.onWillDisappear(({ context }) => {
-		unregisterContext(context);
-	});
-
-	myAction.onDidReceiveSettings(({ action, context, device, event, payload }) => {
-		registerContext(context, payload.settings);
-	});
-
-	// Issue #5: copy the current segment value to the system clipboard on press.
-	// Works in multi-actions (copy here, then paste / type with a later step).
-	myAction.onKeyDown(({ action, context, device, event, payload }) => {
-		const settings = activeContexts[context]
-			|| normalizeSettings(payload && payload.settings);
-		const text = getClipboardText(settings, new Date());
-		copyTextToClipboard(text).then((ok) => {
-			if (ok) {
-				showOk(context);
-			} else {
-				showAlert(context);
-			}
-		});
-	});
-}
-
 /**
  * Normalize settings from a string (legacy), partial object, or full object.
  * Region-format fields (dateformat / hourformat) contributed via PR #15.
@@ -63,7 +19,7 @@ function normalizeSettings(settings) {
 	if (!settings) {
 		return Object.assign({}, DEFAULT_SETTINGS);
 	}
-	if (typeof settings === 'string') {
+	if (typeof settings === "string") {
 		return {
 			dtsegment: settings,
 			dateformat: DEFAULT_SETTINGS.dateformat,
@@ -137,36 +93,11 @@ function formatAmPm(d, language) {
 }
 
 /**
- * Register (or re-register) a button context and paint it immediately
- * from the same wall clock used by every other tile.
- */
-function registerContext(context, settings) {
-	const normalized = normalizeSettings(settings);
-	if (!normalized.dtsegment) {
-		return;
-	}
-	activeContexts[context] = normalized;
-	if (!isNodeJS && typeof $SD !== 'undefined') {
-		// Immediate paint so the key isn't blank until the next tick
-		$SD.setTitle(context, formatDateTime(new Date(), normalized));
-		ensureSharedTick();
-	}
-}
-
-function unregisterContext(context) {
-	delete activeContexts[context];
-	if (Object.keys(activeContexts).length === 0 && sharedTickTimeoutId != null) {
-		clearTimeout(sharedTickTimeoutId);
-		sharedTickTimeoutId = null;
-	}
-}
-
-/**
  * Milliseconds until the next whole-second boundary on the wall clock.
  * Always returns a value in 1..1000 so setTimeout never gets 0.
  */
 function msUntilNextSecond(nowMs) {
-	const now = (typeof nowMs === 'number') ? nowMs : Date.now();
+	const now = (typeof nowMs === "number") ? nowMs : Date.now();
 	const intoSecond = now % 1000;
 	return intoSecond === 0 ? 1000 : (1000 - intoSecond);
 }
@@ -176,7 +107,7 @@ function msUntilNextSecond(nowMs) {
  * Always returns a value in 1..60000.
  */
 function msUntilNextMinute(nowMs) {
-	const now = (typeof nowMs === 'number') ? nowMs : Date.now();
+	const now = (typeof nowMs === "number") ? nowMs : Date.now();
 	const intoMinute = now % 60000;
 	return intoMinute === 0 ? 60000 : (60000 - intoMinute);
 }
@@ -193,123 +124,6 @@ function msUntilNextLocalHour(d) {
 	next.setHours(next.getHours() + 1);
 	const delay = next.getTime() - date.getTime();
 	return delay <= 0 ? 1 : delay;
-}
-
-function ensureSharedTick() {
-	if (sharedTickTimeoutId != null) {
-		return;
-	}
-	scheduleSharedTick();
-}
-
-function scheduleSharedTick() {
-	if (sharedTickTimeoutId != null) {
-		clearTimeout(sharedTickTimeoutId);
-	}
-	// Align every fire to the next wall-clock second. Recomputing from
-	// Date.now() each time prevents setTimeout drift from accumulating.
-	const delay = msUntilNextSecond();
-	sharedTickTimeoutId = setTimeout(onSharedTick, delay);
-}
-
-function onSharedTick() {
-	sharedTickTimeoutId = null;
-	const contexts = Object.keys(activeContexts);
-	if (contexts.length === 0) {
-		return;
-	}
-
-	// ONE Date for every tile this tick — multi-tile clocks stay in lockstep.
-	// Always paint every active context (even minute/hour segments). A few
-	// setTitle calls per second is cheap, and it means a late/skipped tick
-	// after sleep still converges on the correct value on the next fire.
-	const d = new Date();
-	for (let i = 0; i < contexts.length; i++) {
-		const context = contexts[i];
-		const settings = activeContexts[context];
-		if (typeof $SD !== 'undefined') {
-			$SD.setTitle(context, formatDateTime(d, settings));
-		}
-	}
-
-	scheduleSharedTick();
-}
-
-// Back-compat entry point used by older call sites / mental model.
-// Prefer registerContext for new code. Accepts string or settings object.
-function updateTimer(context, settings) {
-	registerContext(context, settings);
-}
-
-/**
- * Text placed on the clipboard for the current segment (same as key title).
- */
-function getClipboardText(settings, d) {
-	const date = (d instanceof Date) ? d : new Date();
-	return formatDateTime(date, settings);
-}
-
-/**
- * Copy plain text to the system clipboard.
- * Prefers the async Clipboard API; falls back to execCommand for older CEF.
- * @returns {Promise<boolean>} true if the write appears to have succeeded
- */
-function copyTextToClipboard(text) {
-	const value = (text == null) ? "" : String(text);
-
-	if (typeof navigator !== 'undefined'
-		&& navigator.clipboard
-		&& typeof navigator.clipboard.writeText === 'function') {
-		return navigator.clipboard.writeText(value)
-			.then(() => true)
-			.catch(() => fallbackCopyText(value));
-	}
-	return Promise.resolve(fallbackCopyText(value));
-}
-
-function fallbackCopyText(text) {
-	if (typeof document === 'undefined') {
-		return false;
-	}
-	try {
-		const ta = document.createElement('textarea');
-		ta.value = text;
-		ta.setAttribute('readonly', '');
-		ta.style.position = 'fixed';
-		ta.style.top = '0';
-		ta.style.left = '-9999px';
-		document.body.appendChild(ta);
-		ta.focus();
-		ta.select();
-		ta.setSelectionRange(0, ta.value.length);
-		const ok = document.execCommand('copy');
-		document.body.removeChild(ta);
-		return !!ok;
-	} catch (e) {
-		return false;
-	}
-}
-
-function showOk(context) {
-	if (typeof $SD === 'undefined') {
-		return;
-	}
-	if (typeof $SD.showOk === 'function') {
-		$SD.showOk(context);
-	} else if ($SD.api && typeof $SD.api.showOk === 'function') {
-		$SD.api.showOk(context);
-	}
-}
-
-function showAlert(context) {
-	if (typeof $SD === 'undefined') {
-		return;
-	}
-	if (typeof $SD.showAlert === 'function') {
-		$SD.showAlert(context);
-	} else if ($SD.api && typeof $SD.api.showAlert === 'function') {
-		$SD.api.showAlert(context);
-	}
 }
 
 /**
@@ -489,7 +303,7 @@ function formatDateTime(d, settings) {
  * Accepts a segment string or settings object.
  */
 function getTimeoutDelay(d, settingsOrSegment) {
-	const dtsegment = (typeof settingsOrSegment === 'string')
+	const dtsegment = (typeof settingsOrSegment === "string")
 		? settingsOrSegment
 		: normalizeSettings(settingsOrSegment).dtsegment;
 	const now = d.getTime();
@@ -523,7 +337,7 @@ function getTimeoutDelay(d, settingsOrSegment) {
 }
 
 function getOrdinalNumber(day) {
-	const suffixes = ['th', 'st', 'nd', 'rd'];
+	const suffixes = ["th", "st", "nd", "rd"];
 	const v = day % 10; // Get the last digit of the day
 	const suffix = (day % 100 >= 11 && day % 100 <= 13) ? suffixes[0] : (suffixes[v] || suffixes[0]);
 	return `${day}${suffix}`;
@@ -545,25 +359,29 @@ function getISOWeekNumber(d) {
 	return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
 }
 
-// Export for Node.js testing
-if (isNodeJS) {
-	module.exports = {
-		getOrdinalNumber,
-		getISOWeekNumber,
-		formatDateTime,
-		formatDate,
-		formatTime,
-		formatWeekday,
-		formatMonthName,
-		formatAmPm,
-		resolveLocale,
-		normalizeSettings,
-		getClipboardText,
-		copyTextToClipboard,
-		fallbackCopyText,
-		getTimeoutDelay,
-		msUntilNextSecond,
-		msUntilNextMinute,
-		msUntilNextLocalHour
-	};
+/**
+ * Text placed on the clipboard for the current segment (same as key title).
+ */
+function getClipboardText(settings, d) {
+	const date = (d instanceof Date) ? d : new Date();
+	return formatDateTime(date, settings);
 }
+
+export {
+	DEFAULT_SETTINGS,
+	getOrdinalNumber,
+	getISOWeekNumber,
+	formatDateTime,
+	formatDate,
+	formatTime,
+	formatWeekday,
+	formatMonthName,
+	formatAmPm,
+	resolveLocale,
+	normalizeSettings,
+	getClipboardText,
+	getTimeoutDelay,
+	msUntilNextSecond,
+	msUntilNextMinute,
+	msUntilNextLocalHour
+};

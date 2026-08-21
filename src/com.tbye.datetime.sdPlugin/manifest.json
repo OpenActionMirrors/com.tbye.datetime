@@ -1,32 +1,37 @@
 {
-	"SDKVersion": 2,
+	"$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+	"SDKVersion": 3,
 	"Author": "Ty Bye",
 	"UUID": "com.tbye.datetime",
-	"CodePath": "app.html",
+	"CodePath": "bin/plugin.js",
 	"Description": "Display dates, times and segments of dates and times.",
-	"Name": "DateTime Composer",
+	"Name": "DateTime Segments",
 	"Icon": "actions/template/assets/plugin_icon",
 	"URL": "https://tbye.com/projects/stream-deck-plugins/datetime/",
+	"SupportURL": "https://github.com/tbye/tbye-sdp-datetime/issues",
 	"Version": "1.1.0.0",
+	"Nodejs": {
+		"Version": "20"
+	},
 	"Software": {
-		"MinimumVersion": "6.4"
+		"MinimumVersion": "6.9"
 	},
 	"OS": [
 		{
 			"Platform": "mac",
-			"MinimumVersion": "10.11"
+			"MinimumVersion": "12"
 		},
 		{
 			"Platform": "windows",
 			"MinimumVersion": "10"
 		}
 	],
-	"Category": "DateTime Composer",
+	"Category": "DateTime Segments",
 	"CategoryIcon": "actions/template/assets/cat_icon",
 	"Actions": [
 		{
 			"Icon": "actions/template/assets/action_icon",
-			"Name": "DateTime Action",
+			"Name": "DateTime Segments",
 			"Controllers": [
 				"Keypad"
 			],
@@ -37,11 +42,11 @@
 					"FontSize": 16
 				}
 			],
-			"Tooltip": "DateTime Segments Plugin — press to copy value to clipboard",
+			"Tooltip": "Display dates, times, and date/time segments. Press to copy the current value.",
 			"UserTitleEnabled": false,
 			"SupportedInMultiActions": true,
 			"UUID": "com.tbye.datetime.action",
-			"PropertyInspectorPath": "actions/template/property-inspector/inspector.html"
+			"PropertyInspectorPath": "ui/inspector.html"
 		}
 	]
 }

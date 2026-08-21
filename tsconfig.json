@@ -1,0 +1,12 @@
+{
+	"extends": "@tsconfig/node20/tsconfig.json",
+	"compilerOptions": {
+		"allowJs": true,
+		"customConditions": ["node"],
+		"module": "ES2022",
+		"moduleResolution": "Bundler",
+		"noImplicitOverride": true
+	},
+	"include": ["src/**/*.ts", "src/**/*.js"],
+	"exclude": ["node_modules", "src/com.tbye.datetime.sdPlugin"]
+}
