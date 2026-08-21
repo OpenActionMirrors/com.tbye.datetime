@@ -4,7 +4,7 @@ This guide covers packaging a `.streamDeckPlugin` on **Linux** (or any machine w
 
 The Marketplace product is **[DateTime Segments](https://marketplace.elgato.com/product/datetime-segments-b89cfa09-bff1-4aa4-b782-6db7672b536a)**. Keep `manifest.json` `Name` / `Category` as **DateTime Segments** — Maker Console rejects a version whose name does not match the existing product.
 
-Current `manifest.json` is **1.1.0.0**. The plugin is a **Node.js SDK 3** plugin (`CodePath: bin/plugin.js`) so Marketplace can DRM-protect the upload.
+Current `manifest.json` is **1.1.0.1**. Use the four-part build (`1.1.0.1`, not `1.1.1.0`): GitHub already shipped **1.1.0**, and Maker Console already ingested **1.1.0.0**. Marketplace versions must strictly increase. The plugin is a **Node.js SDK 3** plugin (`CodePath: bin/plugin.js`) so Marketplace can DRM-protect the upload.
 
 ---
 
@@ -118,7 +118,7 @@ streamdeck restart com.tbye.datetime
 ## GitHub release
 
 ```bash
-VERSION=1.1.0
+VERSION=1.1.0.1
 ./scripts/set-version.sh "$VERSION"
 # commit manifest bump, then:
 ./scripts/build-release.sh
@@ -176,6 +176,22 @@ Maker Console infers **DRM protection: Yes** from those fields. After upload, El
 
 A 288×288 Marketplace app icon (listing only, not the plugin `Icon`) lives at `marketplace/app-icon-288.png`.
 
+### Maker Console release notes (paste)
+
+```
+New in 1.1.0.1
+- Requires Stream Deck 6.9 or later
+- Shared wall-clock tick so multi-tile clocks stay in sync
+- Region date/hour formats plus D.M.YYYY / DD.MM.YYYY
+- ISO 8601 week number
+- Day name / abbreviation
+- Language selection for localized day/month names
+- Copy current value to clipboard on key press; multi-action friendly
+- Date (No Year) fixed for non-US locales
+- Time without seconds fixed for 24-hour / non-US locales
+- Default title font size raised to 16
+```
+
 ---
 
 ## Quick reference
@@ -186,13 +202,13 @@ npm install
 npm install -g @elgato/cli@latest
 
 # Everyday release cut
-./scripts/set-version.sh 1.1.0
-git add -u && git commit -m "chore: bump version to 1.1.0.0"
+./scripts/set-version.sh 1.1.0.1
+git add -u && git commit -m "chore: bump version to 1.1.0.1"
 ./scripts/build-release.sh
 # → dist/com.tbye.datetime.streamDeckPlugin
 
 # Ship
-gh release create 1.1.0 dist/com.tbye.datetime.streamDeckPlugin --title "DateTime Segments Plugin - 1.1.0" --notes "…"
+gh release create 1.1.0.1 dist/com.tbye.datetime.streamDeckPlugin --title "DateTime Segments Plugin - 1.1.0.1" --notes "…"
 # then upload the same file at https://maker.elgato.com
 # (product name DateTime Segments; leave auto-publish off until the DRM build is smoke-tested)
 ```

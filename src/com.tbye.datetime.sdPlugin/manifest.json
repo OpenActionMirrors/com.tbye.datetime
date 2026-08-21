@@ -9,7 +9,7 @@
 	"Icon": "actions/template/assets/plugin_icon",
 	"URL": "https://tbye.com/projects/stream-deck-plugins/datetime/",
 	"SupportURL": "https://github.com/tbye/tbye-sdp-datetime/issues",
-	"Version": "1.1.0.0",
+	"Version": "1.1.0.1",
 	"Nodejs": {
 		"Version": "20"
 	},
